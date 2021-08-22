@@ -4,7 +4,12 @@ import play from "../sounds/play.mp3";
 import correct from "../sounds/correct.mp3";
 import wrong from "../sounds/wrong.mp3";
 
-export default function Trivia() {
+export default function Trivia({ 
+  data, 
+  questionNumber, 
+  setQuestionNumber,
+  setStop
+}) {
   const [question, setQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [className, setClassName] = useState("answer");
@@ -12,14 +17,65 @@ export default function Trivia() {
   const [correctAnswer] = useSound(correct);
   const [wrongAnswer] = useSound(wrong);
 
+  useEffect(() => {
+    letsPlay();
+  }, [letsPlay]);
+
+  useEffect(() => {
+    setQuestion(data[questionNumber - 1]);
+  }, [data, questionNumber]);
+
+  const delay = (duration, callback) => {
+    setTimeout(() => {
+      callback();
+    }, duration);
+  };
+
+  const handleClick = (a) => {
+    setSelectedAnswer(a);
+    setClassName("answer active");
+    delay(3000, () => {
+      setClassName(a.correct ? "answer correct" : "answer wrong");
+    });
+
+    // setTimeout(() => {
+      delay(5000, () => {
+        if (a.correct) {
+          correctAnswer();
+          delay(1000, () => {
+            setQuestionNumber((prev) => prev + 1);
+            setSelectedAnswer(null);
+          });
+          // setTimeout(() => {
+          //   setQuestionNumber((prev) => prev + 1);
+          //   setSelectedAnswer(null);
+          // }, 1000);
+        } else {
+          wrongAnswer();
+          delay(1000, () => {
+            setStop(true);
+          });
+          // setTimeout(() => {
+          //   setTimeOut(true);
+          // }, 1000);
+        }
+      // }, 5000);
+        })
+}
+
+  
   return (
     <div className="trivia">
-      <div className="question">What's the best youtube channel? </div>
+      <div className="question">{question?.question}</div>
       <div className="answers">
-          <div className="answer"> lama dev </div>
-          <div className="answer"> rona dev </div>
-          <div className="answer"> yemi dev </div>
-          <div className="answer"> afeez dev </div>
+          {question?.answers.map((a) => (
+          <div
+            className={selectedAnswer === a ? className : "answer"}
+            onClick={() => !selectedAnswer && handleClick(a)}
+          >
+            {a.text}
+          </div>
+        ))}
       </div>
     </div>
   );
